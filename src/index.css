@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --animate-spin-slow: spin 8s linear infinite;
+  --animate-bounce-slow: bounce 3s ease-in-out infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-fade-in: fadeIn 0.4s ease-out forwards;
+  --animate-scale-up: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Remap colors dynamically to Bento Palette */
+  --color-slate-50: #f5f5f5;
+  --color-slate-100: #e5e5e5;
+  --color-slate-200: #d4d4d4;
+  --color-slate-300: #a3a3a3;
+  --color-slate-400: #737373;
+  --color-slate-500: #525252;
+  --color-slate-600: #404040;
+  --color-slate-700: #262626;
+  --color-slate-800: rgba(255, 255, 255, 0.1);
+  --color-slate-850: rgba(255, 255, 255, 0.08);
+  --color-slate-900: #0d0d0d;
+  --color-slate-950: #050505;
+
+  /* Map Teal/Cyan references to Digital Blue/indigo to fit design HTML colors */
+  --color-teal-50: #eff6ff;
+  --color-teal-100: #dbeafe;
+  --color-teal-200: #bfdbfe;
+  --color-teal-300: #93c5fd;
+  --color-teal-400: #3b82f6;
+  --color-teal-500: #2563eb;
+  --color-teal-600: #1d4ed8;
+  --color-teal-700: #1e40af;
+  --color-teal-800: #1e3a8a;
+  --color-teal-900: #172554;
+  --color-teal-950: #0f172a;
+  
+  /* Retain emerald as authentic green to preserve validated metrics contrast */
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+body {
+  background-color: #050505;
+  color: #e5e5e5;
+  font-family: var(--font-sans);
+}
+
+/* Global UI improvements: tighter typography, improved button styles */
+* { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+h1, h2, h3, h4, h5 { font-family: var(--font-sans); font-weight: 600; margin: 0 0 0.5rem 0; }
+p { line-height: 1.6; color: #d9d9d9; }
+
+.btn-primary {
+  background: linear-gradient(90deg, #16a34a, #06b6d4);
+  color: white;
+  padding: 0.6rem 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+  border: none;
+}
+.btn-primary:hover { transform: translateY(-1px); }
+
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 1rem;
+  border-radius: 1rem;
+}
+
+/* Hard Selector Hijacks to enforce absolute bento consistency on hardcoded elements */
+.bg-\[\#050b1a\], .bg-\[\#050a17\] {
+  background-color: #050505 !important;
+}
+
+.bg-\[\#0b1329\], .bg-slate-900, .bg-[#0b1329] {
+  background-color: #0d0d0d !important;
+}
+
+aside, aside.bg-\[\#050a17\] {
+  background-color: #0a0a0a !important;
+}
+
+.border-slate-800, .border-slate-850, .border-slate-900, .border-slate-855, .border-slate-950 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Smooth bento cards shadow and container adjustments */
+.rounded-2xl {
+  border-radius: 1rem !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Ensure nice subtle scrollbars like a dev terminal */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
