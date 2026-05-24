@@ -180,35 +180,30 @@ export default function LandingHero({ onGetStarted, onLogin }: LandingHeroProps)
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="card">
-              <p className="text-sm text-slate-300 italic">"ReviewShield helped us uncover coordinated fake review networks that had been damaging our product listings. Their insights saved us thousands in reverse-engineering our reputation."</p>
-              <div className="mt-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-300 font-bold">AM</div>
-                <div>
-                  <div className="text-xs font-bold text-white">Amrita M.</div>
-                  <div className="text-[11px] text-slate-400">Head of Listings, Ecomrc Cloud</div>
+            <div className="md:col-span-2">
+              {/* replace with carousel component to cycle testimonials */}
+              <div className="card p-6">
+                <p className="text-sm text-slate-300 italic">"ReviewShield helped us uncover coordinated fake review networks that had been damaging our product listings. Their insights saved us thousands in reputation recovery."</p>
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-300 font-bold">AM</div>
+                  <div>
+                    <div className="text-xs font-bold text-white">Amrita M.</div>
+                    <div className="text-[11px] text-slate-400">Head of Listings, Ecomrc Cloud</div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="card">
-              <p className="text-sm text-slate-300 italic">"Fast, reliable, and surprisingly accurate. The AI-driven classifier reduced our moderation load by 67% and improved buyer trust."</p>
-              <div className="mt-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-300 font-bold">JB</div>
-                <div>
-                  <div className="text-xs font-bold text-white">Jon B.</div>
-                  <div className="text-[11px] text-slate-400">Marketplace Ops, Flip Kart Core</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="card">
-              <p className="text-sm text-slate-300 italic">"Directly actionable insights and an easy CSV workflow — we integrated ReviewShield into daily QA pipelines in under a day."</p>
-              <div className="mt-4 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-300 font-bold">SL</div>
-                <div>
-                  <div className="text-xs font-bold text-white">S. Lee</div>
-                  <div className="text-[11px] text-slate-400">Head of Analytics, AMZ Listings</div>
+            <div className="md:col-span-1">
+              {/* small rotating carousel on right */}
+              <div className="card p-4">
+                <p className="text-sm text-slate-300 italic">"Fast, reliable, and surprisingly accurate. The AI-driven classifier reduced our moderation load by 67% and improved buyer trust."</p>
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-300 font-bold">JB</div>
+                  <div>
+                    <div className="text-xs font-bold text-white">Jon B.</div>
+                    <div className="text-[11px] text-slate-400">Marketplace Ops, Flip Kart Core</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -390,12 +385,12 @@ export default function LandingHero({ onGetStarted, onLogin }: LandingHeroProps)
             <div className="bg-slate-900/40 border border-slate-900 hover:border-slate-800 p-8 rounded-2xl flex flex-col justify-between transition-all">
               <div>
                 <h4 className="text-sm font-mono text-slate-400 uppercase">Standard Starter</h4>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-4xl font-extrabold text-white">
-                    {billingCycle === "yearly" ? "$19" : "$24"}
-                  </span>
-                  <span className="text-slate-500 ml-1.5 text-sm">/month</span>
-                </div>
+                    <div className="mt-4 flex items-baseline">
+                      <span className="text-4xl font-extrabold text-white">
+                        {billingCycle === "yearly" ? "₹1,577" : "₹1,992"}
+                      </span>
+                      <span className="text-slate-500 ml-1.5 text-sm">/month (INR)</span>
+                    </div>
                 <p className="mt-4 text-xs text-slate-400 leading-relaxed">Perfect for individual e-commerce merchants beginning listings validation strategies.</p>
                 <div className="h-px bg-slate-800 my-6" />
                 <ul className="space-y-3.5 text-xs text-slate-300">
@@ -427,9 +422,9 @@ export default function LandingHero({ onGetStarted, onLogin }: LandingHeroProps)
                 <h4 className="text-sm font-mono text-teal-400 uppercase mt-2">Accelerate Core</h4>
                 <div className="mt-4 flex items-baseline">
                   <span className="text-5xl font-extrabold text-white">
-                    {billingCycle === "yearly" ? "$79" : "$99"}
+                    {billingCycle === "yearly" ? "₹6,557" : "₹8,217"}
                   </span>
-                  <span className="text-emerald-400 ml-1.5 text-sm">/month</span>
+                  <span className="text-emerald-400 ml-1.5 text-sm">/month (INR)</span>
                 </div>
                 <p className="mt-4 text-xs text-slate-300 leading-relaxed">Configured for established Amazon, Shopify, and Flipkart sellers tracking multiple SKUs.</p>
                 <div className="h-px bg-slate-800 my-6" />

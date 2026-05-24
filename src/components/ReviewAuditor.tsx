@@ -185,6 +185,8 @@ export default function ReviewAuditor({ onAnalyze, isAnalyzing }: ReviewAuditorP
     setUploadStatus({ type: "idle", text: "" });
   };
 
+  const [lastPreview, setLastPreview] = useState<null | { reviewerName: string; rating: number; reviewText: string; productName: string }>(null);
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-fade-in font-sans">
       
@@ -221,7 +223,8 @@ export default function ReviewAuditor({ onAnalyze, isAnalyzing }: ReviewAuditorP
       {activeTab === "single" ? (
         
         /* SINGLE REVIEW PASTE LAYOUT */
-        <div className="card bg-slate-900/40 border-slate-800 p-6 md:p-8 shadow-2xl relative">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 card bg-slate-900/40 border-slate-800 p-6 md:p-8 shadow-2xl relative">
           
           <form onSubmit={handleManualSubmit} className="space-y-6">
             
@@ -308,6 +311,28 @@ export default function ReviewAuditor({ onAnalyze, isAnalyzing }: ReviewAuditorP
               )}
             </button>
           </form>
+        </div>
+
+        {/* Preview / Explanation Panel */}
+        <div className="lg:col-span-1">
+          <div className="card bg-slate-900/40 p-4 border-slate-800">
+            <div className="text-xs text-slate-400 uppercase tracking-widest font-mono">Preview & Explanation</div>
+            {!lastPreview ? (
+              <div className="mt-4 text-sm text-slate-300">After you run an analysis, a concise explanation and risk indicators will appear here, including fake-probability, AI-generation score, and suggested actions.</div>
+            ) : (
+              <div className="mt-4">
+                <div className="text-sm font-bold text-white">{lastPreview.productName}</div>
+                <div className="text-[12px] text-slate-400 mt-1">By {lastPreview.reviewerName} — Rating: {lastPreview.rating}</div>
+                <div className="mt-3 text-xs text-slate-300 italic">"{lastPreview.reviewText.slice(0, 160)}{lastPreview.reviewText.length>160? '...' : '' }"</div>
+                <div className="mt-4 flex flex-col gap-2 text-xs">
+                  <div className="flex items-center justify-between"><span>Fake Probability</span><strong className="text-rose-400">—%</strong></div>
+                  <div className="flex items-center justify-between"><span>AI Generated Score</span><strong className="text-amber-400">—%</strong></div>
+                  <div className="flex items-center justify-between"><span>Trust Score</span><strong className="text-emerald-400">—</strong></div>
+                </div>
+              </div>
+            )}
+            <div className="mt-4 text-[11px] text-slate-400">Tip: Use the presets to quickly simulate common cases, or upload a CSV for batch processing.</div>
+          </div>
         </div>
 
       ) : (
