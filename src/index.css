@@ -102,6 +102,10 @@ p { line-height: 1.6; color: #d9d9d9; }
   border-radius: 1rem;
 }
 
+/* stat number subtle animation */
+.card .text-2xl { transition: transform 0.25s ease; }
+.card:hover .text-2xl { transform: translateY(-4px); }
+
 /* Hard Selector Hijacks to enforce absolute bento consistency on hardcoded elements */
 .bg-\[\#050b1a\], .bg-\[\#050a17\] {
   background-color: #050505 !important;
