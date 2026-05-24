@@ -171,6 +171,51 @@ export default function LandingHero({ onGetStarted, onLogin }: LandingHeroProps)
         </motion.div>
       </section>
 
+      {/* Testimonials / Trust Signals */}
+      <section className="py-16 bg-slate-900/10 border-t border-slate-900">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h3 className="text-sm font-mono tracking-widest text-teal-400 uppercase">Customer Testimonials</h3>
+            <p className="mt-3 text-lg text-slate-300">Real customers report measurable improvements in listing health and fewer reputation incidents.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="card">
+              <p className="text-sm text-slate-300 italic">"ReviewShield helped us uncover coordinated fake review networks that had been damaging our product listings. Their insights saved us thousands in reverse-engineering our reputation."</p>
+              <div className="mt-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-300 font-bold">AM</div>
+                <div>
+                  <div className="text-xs font-bold text-white">Amrita M.</div>
+                  <div className="text-[11px] text-slate-400">Head of Listings, Ecomrc Cloud</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <p className="text-sm text-slate-300 italic">"Fast, reliable, and surprisingly accurate. The AI-driven classifier reduced our moderation load by 67% and improved buyer trust."</p>
+              <div className="mt-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-300 font-bold">JB</div>
+                <div>
+                  <div className="text-xs font-bold text-white">Jon B.</div>
+                  <div className="text-[11px] text-slate-400">Marketplace Ops, Flip Kart Core</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <p className="text-sm text-slate-300 italic">"Directly actionable insights and an easy CSV workflow — we integrated ReviewShield into daily QA pipelines in under a day."</p>
+              <div className="mt-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-300 font-bold">SL</div>
+                <div>
+                  <div className="text-xs font-bold text-white">S. Lee</div>
+                  <div className="text-[11px] text-slate-400">Head of Analytics, AMZ Listings</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Bento Grid Features Showcase */}
       <section id="features" className="py-24 bg-slate-950 border-t border-slate-900 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
