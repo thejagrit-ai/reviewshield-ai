@@ -45,3 +45,4 @@ logs/
 # Python virtualenvs
 venv/
 .envs/
+.vercel

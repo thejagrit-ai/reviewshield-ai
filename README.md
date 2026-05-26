@@ -1,6 +1,4 @@
-# ReviewShield AI (cleaned)
-
-Minimal cleaned README for uploading to GitHub.
+# ReviewShield AI
 
 Purpose
 - Lightweight local/development frontend + backend for review analysis and demo purposes.
