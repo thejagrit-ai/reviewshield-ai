@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Role Lookup function
+    function isAdmin() {
+      return isSignedIn() && 
+        (request.auth.token.email == "sjagrit2005@gmail.com" || 
+         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin");
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 2. Validate User Entity Helper
+    function isValidUser(data) {
+      return data.keys().hasAll(['id', 'email', 'name', 'role', 'createdAt']) &&
+             data.keys().size() == 5 &&
+             data.id is string && data.id.size() <= 128 &&
+             data.email is string && data.email.size() <= 256 &&
+             data.name is string && data.name.size() <= 128 &&
+             data.role is string && (data.role == "user" || data.role == "admin") &&
+             data.createdAt is string;
+    }
+
+    // 3. User Document Rules
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(incoming()) && (incoming().role == "user" || request.auth.token.email == "sjagrit2005@gmail.com");
+      allow update: if isOwner(userId) && isValidUser(incoming()) && (incoming().role == existing().role || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // 4. Validate Review Helper
+    function isValidReview(data) {
+      return data.keys().hasAll(['id', 'userId', 'reviewerName', 'productName', 'rating', 'reviewText', 'isFake', 'fakeProbability', 'aiGeneratedProbability', 'sentiment', 'sentimentScore', 'trustScore', 'toxicityScore', 'extractedKeywords', 'suspiciousReasoning', 'flaggedPatterns', 'createdAt']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.reviewerName is string && data.reviewerName.size() <= 256 &&
+             data.productName is string && data.productName.size() <= 256 &&
+             data.rating is int && data.rating >= 1 && data.rating <= 5 &&
+             data.reviewText is string && data.reviewText.size() <= 20000 &&
+             data.isFake is bool &&
+             data.fakeProbability is int && data.fakeProbability >= 0 && data.fakeProbability <= 100 &&
+             data.aiGeneratedProbability is int && data.aiGeneratedProbability >= 0 && data.aiGeneratedProbability <= 100 &&
+             data.sentiment is string && (data.sentiment == "positive" || data.sentiment == "neutral" || data.sentiment == "negative") &&
+             data.sentimentScore is number &&
+             data.trustScore is int && data.trustScore >= 0 && data.trustScore <= 100 &&
+             data.toxicityScore is int && data.toxicityScore >= 0 && data.toxicityScore <= 100 &&
+             data.extractedKeywords is list &&
+             data.suspiciousReasoning is string && data.suspiciousReasoning.size() <= 2000 &&
+             data.flaggedPatterns is list;
+    }
+
+    // 5. Review Platform Rules
+    match /reviews/{reviewId} {
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(reviewId) && isValidReview(incoming()) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(reviewId) && isValidReview(incoming()) && existing().userId == request.auth.uid;
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // 6. Validate Insight Helper
+    function isValidInsight(data) {
+      return data.keys().hasAll(['productName', 'userId', 'reviewsCount', 'averageRating', 'averageTrustScore', 'satisfactionScore', 'authenticityGrade', 'consensusText', 'keyHighlights', 'mainComplaints', 'actionableImprovements', 'lastUpdated']) &&
+             data.productName is string && data.productName.size() <= 256 &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.reviewsCount is int &&
+             data.averageRating is number &&
+             data.averageTrustScore is int &&
+             data.satisfactionScore is int &&
+             data.authenticityGrade is string &&
+             data.consensusText is string &&
+             data.keyHighlights is list &&
+             data.mainComplaints is list &&
+             data.actionableImprovements is list;
+    }
+
+    // 7. Product Insights rules
+    match /insights/{insightId} {
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isValidId(insightId) && isValidInsight(incoming()) && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(insightId) && isValidInsight(incoming()) && existing().userId == request.auth.uid;
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // 8. Global System Audit Log Rules (immutable logs)
+    match /logs/{logId} {
+      allow list: if isAdmin();
+      allow get: if isAdmin();
+      allow create: if isSignedIn() && incoming().userEmail == request.auth.token.email;
+      allow update, delete: if false;
+    }
+
+    // Admins registry matching (internal server override map)
+    match /admins/{adminId} {
+      allow read, write: if false; // strictly server side configured
+    }
+  }
+}

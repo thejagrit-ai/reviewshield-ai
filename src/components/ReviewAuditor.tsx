@@ -1,20 +1,30 @@
 import React, { useState, useRef } from "react";
-import { 
-  Sparkles, 
-  UploadCloud, 
-  CheckCircle, 
-  Flame, 
-  ArrowRight, 
-  MessageSquare, 
-  FileText, 
+import {
+  Sparkles,
+  UploadCloud,
+  CheckCircle,
+  Flame,
+  ArrowRight,
+  MessageSquare,
+  FileText,
   AlertTriangle,
-  Info,
   Text,
-  Star
+  Star,
+  ShieldCheck,
+  Bot,
+  Swords,
+  User,
 } from "lucide-react";
 
 interface ReviewAuditorProps {
-  onAnalyze: (reviews: Array<{ reviewerName: string; rating: number; reviewText: string; productName: string }>) => Promise<void>;
+  onAnalyze: (
+    reviews: Array<{
+      reviewerName: string;
+      rating: number;
+      reviewText: string;
+      productName: string;
+    }>
+  ) => Promise<void>;
   isAnalyzing: boolean;
 }
 
@@ -24,29 +34,34 @@ const presets = [
     product: "ApexFit Watch 3",
     rating: 5,
     author: "DeceivedBot88",
-    icon: Sparkles,
-    badgeColor: "bg-teal-500/10 text-teal-400 border-teal-500/20",
-    text: "I am absolutely delighted and thrilled with this premium wrist technology masterpiece. The exquisite bezel matches perfectly with organic styles. Operating system runs spectacularly smoothly and battery lifespan is extremely magnificent. I highly recommend purchasing this item with absolute confidence, worth every single penny spent!"
+    icon: Bot,
+    accentClass: "border-l-teal-500",
+    badgeBg: "bg-teal-500/10 text-teal-400 border border-teal-500/20",
+    text: "I am absolutely delighted and thrilled with this premium wrist technology masterpiece. The exquisite bezel matches perfectly with organic styles. Operating system runs spectacularly smoothly and battery lifespan is extremely magnificent. I highly recommend purchasing this item with absolute confidence, worth every single penny spent!",
   },
   {
-    title: "Competitor Smear Campaign",
-    product: "SonicBlast Wireless Buds",
+    title: "Smear Campaign",
+    product: "SonicBlast Buds",
     rating: 1,
     author: "AggressedCompetitor",
-    icon: Flame,
-    badgeColor: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-    text: "This product is a total scam. Complete rubbish materials, the charger case literally exploded on my table. Absolute fraud company that pays for good metrics. Green battery drops to zero instantly. DO NOT BUY this trash!"
+    icon: Swords,
+    accentClass: "border-l-rose-500",
+    badgeBg: "bg-rose-500/10 text-rose-400 border border-rose-500/20",
+    text: "This product is a total scam. Complete rubbish materials, the charger case literally exploded on my table. Absolute fraud company that pays for good metrics. Green battery drops to zero instantly. DO NOT BUY this trash!",
   },
   {
-    title: "Genuine Customer Feedback",
+    title: "Genuine Feedback",
     product: "BrewPerfect Pro",
     rating: 4,
     author: "HumbleUser",
-    icon: MessageSquare,
-    badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    text: "Decent auto coffee maker for the price. Programming buttons were a bit tricky to memorize at first but now it works well. Coffee filters can bleed slightly if overfilled. Satisfied with overall extraction speed."
-  }
+    icon: User,
+    accentClass: "border-l-emerald-500",
+    badgeBg: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+    text: "Decent auto coffee maker for the price. Programming buttons were a bit tricky to memorize at first but now it works well. Coffee filters can bleed slightly if overfilled. Satisfied with overall extraction speed.",
+  },
 ];
+
+const STAR_COLORS = ["", "text-rose-400", "text-orange-400", "text-amber-400", "text-yellow-400", "text-teal-400"];
 
 export default function ReviewAuditor({ onAnalyze, isAnalyzing }: ReviewAuditorProps) {
   const [activeTab, setActiveTab] = useState<"single" | "bulk">("single");
@@ -57,83 +72,53 @@ export default function ReviewAuditor({ onAnalyze, isAnalyzing }: ReviewAuditorP
   const [dragActive, setDragActive] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<{ type: "idle" | "success" | "error"; text: string }>({ type: "idle", text: "" });
   const [loadedFromCSV, setLoadedFromCSV] = useState<Array<{ name: string; text: string; rating: number; product: string }>>([]);
-  
+  const [lastPreview, setLastPreview] = useState<{ reviewerName: string; rating: number; reviewText: string; productName: string } | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handlePresetSelect = (text: string, rating: number, prod: string, author: string) => {
+  const handlePresetSelect = (text: string, r: number, prod: string, author: string) => {
     setManualText(text);
-    setRating(rating);
+    setRating(r);
     setProductName(prod);
     setAuthorName(author);
+    setActiveTab("single");
   };
 
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!manualText.trim()) return;
-
-    const reviewPayload = [
-      {
-        reviewerName: authorName.trim() || "Verified Buyer",
-        rating: rating,
-        reviewText: manualText.trim(),
-        productName: productName.trim() || "General Merchandise SKU"
-      }
-    ];
-
-    await onAnalyze(reviewPayload);
+    const payload = [{ reviewerName: authorName.trim() || "Verified Buyer", rating, reviewText: manualText.trim(), productName: productName.trim() || "General Merchandise" }];
+    setLastPreview(payload[0]);
+    await onAnalyze(payload);
   };
 
-  // CSV Drag/Drop Handlers
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
+    setDragActive(e.type === "dragenter" || e.type === "dragover");
   };
 
   const parseCSVContent = (text: string) => {
     try {
       const lines = text.split("\n");
       const results: Array<{ name: string; text: string; rating: number; product: string }> = [];
-
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
-
-        // Basic CSV splitting safely
         const matches = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
         if (!matches || matches.length < 2) continue;
-
-        const ratingVal = parseInt(matches[0]?.replace(/^"|"$/g, "")) || 5;
-        const authorVal = matches[1]?.replace(/^"|"$/g, "") || "Imported Buyer";
-        const reviewText = matches[2]?.replace(/^"|"$/g, "") || line;
-        const prodVal = matches[3]?.replace(/^"|"$/g, "") || "Imported Product";
-
         results.push({
-          name: authorVal,
-          text: reviewText,
-          rating: ratingVal,
-          product: prodVal
+          rating: parseInt(matches[0]?.replace(/^"|"$/g, "")) || 5,
+          name: matches[1]?.replace(/^"|"$/g, "") || "Imported Buyer",
+          text: matches[2]?.replace(/^"|"$/g, "") || line,
+          product: matches[3]?.replace(/^"|"$/g, "") || "Imported Product",
         });
       }
-
-      if (results.length === 0) {
-        throw new Error("No readable records identified. Ensure CSV columns matches layout.");
-      }
-
+      if (results.length === 0) throw new Error("No readable records found. Check column order: Rating, Reviewer, Review, Product.");
       setLoadedFromCSV(results);
-      setUploadStatus({
-        type: "success",
-        text: `Staged ${results.length} listing reviews successfully. Ready to trigger AI pattern checking.`
-      });
+      setUploadStatus({ type: "success", text: `${results.length} reviews staged and ready for analysis.` });
     } catch (err: any) {
-      setUploadStatus({
-        type: "error",
-        text: err.message || "Column misalignment detected. Columns must be: Rating, Reviewer, Review, Product"
-      });
+      setUploadStatus({ type: "error", text: err.message || "Column misalignment. Expected: Rating, Reviewer, Review, Product." });
     }
   };
 
@@ -141,209 +126,261 @@ export default function ReviewAuditor({ onAnalyze, isAnalyzing }: ReviewAuditorP
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.name.endsWith(".csv")) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            parseCSVContent(event.target.result as string);
-          }
-        };
-        reader.readAsText(file);
-      } else {
-        setUploadStatus({ type: "error", text: "Invalid file format. Please upload a standardized .csv file." });
-      }
+    const file = e.dataTransfer.files?.[0];
+    if (file?.name.endsWith(".csv")) {
+      const reader = new FileReader();
+      reader.onload = (ev) => ev.target?.result && parseCSVContent(ev.target.result as string);
+      reader.readAsText(file);
+    } else {
+      setUploadStatus({ type: "error", text: "Invalid format. Upload a .csv file." });
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          parseCSVContent(event.target.result as string);
-        }
-      };
-      reader.readAsText(file);
-    }
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => ev.target?.result && parseCSVContent(ev.target.result as string);
+    reader.readAsText(file);
   };
 
   const triggerCSVSubmit = async () => {
-    if (loadedFromCSV.length === 0) return;
-    const arrayPayload = loadedFromCSV.map(item => ({
-      reviewerName: item.name,
-      rating: item.rating,
-      reviewText: item.text,
-      productName: item.product
-    }));
-
-    await onAnalyze(arrayPayload);
+    if (!loadedFromCSV.length) return;
+    await onAnalyze(loadedFromCSV.map(i => ({ reviewerName: i.name, rating: i.rating, reviewText: i.text, productName: i.product })));
     setLoadedFromCSV([]);
     setUploadStatus({ type: "idle", text: "" });
   };
 
-  const [lastPreview, setLastPreview] = useState<null | { reviewerName: string; rating: number; reviewText: string; productName: string }>(null);
-
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in font-sans">
-      
-      {/* Centered Introductory Vibe */}
-      <div className="text-center space-y-2">
-        <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Inspect Review Authenticity</h3>
-        <p className="text-sm text-slate-300 max-w-lg mx-auto leading-relaxed">
-          Paste a single review or upload a listing CSV to detect inauthentic feedback, AI-generated text, and targeted smear campaigns — fast, reliable, and explainable.
-        </p>
-      </div>
+    <div className="w-full max-w-5xl mx-auto font-sans">
 
-      {/* Mode Select Tabs */}
-      <div className="flex justify-center">
-        <div className="p-1 bg-slate-900 border border-slate-800 rounded-xl flex gap-1">
+      {/* ── Page Header ── */}
+      <div className="mb-8 pb-6 border-b border-slate-800 flex items-start justify-between gap-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <ShieldCheck className="w-5 h-5 text-teal-400" />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-teal-400">Review Intelligence</span>
+          </div>
+          <h2 className="text-2xl font-bold text-white leading-tight">Authenticity Auditor</h2>
+          <p className="mt-1 text-sm text-slate-400 max-w-md leading-relaxed">
+            Detect bot-generated reviews, smear campaigns, and inauthentic feedback using forensic language analysis.
+          </p>
+        </div>
+        {/* Mode tabs — top-right aligned */}
+        <div className="shrink-0 flex items-center gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl mt-1">
           <button
             onClick={() => setActiveTab("single")}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === "single" ? "bg-teal-500 text-slate-950 shadow" : "text-slate-400 hover:text-slate-200"}`}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === "single" ? "bg-teal-500 text-slate-950" : "text-slate-400 hover:text-white"
+            }`}
           >
             <Text className="w-3.5 h-3.5" />
-            <span>Single Review Paste</span>
+            Single Review
           </button>
-          
           <button
             onClick={() => setActiveTab("bulk")}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${activeTab === "bulk" ? "bg-teal-500 text-slate-950 shadow" : "text-slate-400 hover:text-slate-200"}`}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              activeTab === "bulk" ? "bg-teal-500 text-slate-950" : "text-slate-400 hover:text-white"
+            }`}
           >
             <UploadCloud className="w-3.5 h-3.5" />
-            <span>Bulk CSV Upload</span>
+            Bulk CSV
           </button>
         </div>
       </div>
 
-      {/* Main Container Area */}
-      {activeTab === "single" ? (
-        
-        /* SINGLE REVIEW PASTE LAYOUT */
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 card bg-slate-900/40 border-slate-800 p-6 md:p-8 shadow-2xl relative">
-          
-          <form onSubmit={handleManualSubmit} className="space-y-6">
-            
-            {/* Upper Config Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-2">Product Name / Title</label>
-                <input
-                  type="text"
-                  placeholder="e.g. ApexFit Watch 3"
-                  value={productName}
-                  onChange={(e) => setProductName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-850 px-4 py-3 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500 placeholder-slate-650"
-                  required
-                />
-              </div>
+      {/* ── Single Review Tab ── */}
+      {activeTab === "single" && (
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-              <div>
-                <label className="block text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-2">Reviewer Identity</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Sarah Jenkins"
-                  value={authorName}
-                  onChange={(e) => setAuthorName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-850 px-4 py-3 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500 placeholder-slate-650"
-                />
-              </div>
-            </div>
+          {/* Left — Form (3/5) */}
+          <div className="lg:col-span-3">
+            <form onSubmit={handleManualSubmit} className="space-y-5">
 
-            {/* Star selector */}
-              <div>
-              <label className="block text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-2">Reviewer Star Score</label>
-              <div className="flex gap-1.5">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => setRating(star)}
-                    className={`flex items-center gap-1 px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                      rating === star 
-                        ? "bg-teal-500 text-slate-950 border-teal-500 shadow-inner" 
-                        : "bg-slate-950 text-slate-400 border-slate-850 hover:border-slate-800"
-                    }`}
-                  >
-                    <span>{star}</span>
-                    <Star className={`w-3.5 h-3.5 ${rating === star ? "fill-slate-950" : ""}`} />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Massive centered input */}
-            <div>
-              <label className="block text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-2">Review Text Content</label>
-              <textarea
-                placeholder="Type or paste the product review copy here to run forensic scans..."
-                rows={6}
-                value={manualText}
-                onChange={(e) => setManualText(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-850 p-4 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500 resize-none font-sans leading-relaxed placeholder-slate-650 shadow-inner"
-                required
-              />
-            </div>
-
-            {/* Core Run Button */}
-            <button
-              type="submit"
-              disabled={isAnalyzing || !manualText.trim() || !productName.trim()}
-              className="w-full bg-teal-500 hover:bg-teal-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-extrabold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-xs cursor-pointer hover:scale-[1.01]"
-            >
-              {isAnalyzing ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-slate-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 00 12 5.373 12 12H4z"></path>
-                  </svg>
-                  <span>Deconstruction Language Patterns...</span>
-                </>
-              ) : (
-                <>
-                  <span>Conduct Forensic Analysis</span>
-                  <ArrowRight className="w-4 h-4 text-slate-950" />
-                </>
-              )}
-            </button>
-          </form>
-        </div>
-
-        {/* Preview / Explanation Panel */}
-        <div className="lg:col-span-1">
-          <div className="card bg-slate-900/40 p-4 border-slate-800">
-            <div className="text-xs text-slate-400 uppercase tracking-widest font-mono">Preview & Explanation</div>
-            {!lastPreview ? (
-              <div className="mt-4 text-sm text-slate-300">After you run an analysis, a concise explanation and risk indicators will appear here, including fake-probability, AI-generation score, and suggested actions.</div>
-            ) : (
-              <div className="mt-4">
-                <div className="text-sm font-bold text-white">{lastPreview.productName}</div>
-                <div className="text-[12px] text-slate-400 mt-1">By {lastPreview.reviewerName} — Rating: {lastPreview.rating}</div>
-                <div className="mt-3 text-xs text-slate-300 italic">"{lastPreview.reviewText.slice(0, 160)}{lastPreview.reviewText.length>160? '...' : '' }"</div>
-                <div className="mt-4 flex flex-col gap-2 text-xs">
-                  <div className="flex items-center justify-between"><span>Fake Probability</span><strong className="text-rose-400">—%</strong></div>
-                  <div className="flex items-center justify-between"><span>AI Generated Score</span><strong className="text-amber-400">—%</strong></div>
-                  <div className="flex items-center justify-between"><span>Trust Score</span><strong className="text-emerald-400">—</strong></div>
+              {/* Product + Author row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Product Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. ApexFit Watch 3"
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
+                    required
+                    className="w-full bg-slate-900 border border-slate-700 hover:border-slate-600 focus:border-teal-500 px-3.5 py-2.5 rounded-xl text-sm text-white placeholder-slate-600 outline-none transition-colors"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    Reviewer Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Sarah Jenkins"
+                    value={authorName}
+                    onChange={(e) => setAuthorName(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 hover:border-slate-600 focus:border-teal-500 px-3.5 py-2.5 rounded-xl text-sm text-white placeholder-slate-600 outline-none transition-colors"
+                  />
                 </div>
               </div>
-            )}
-            <div className="mt-4 text-[11px] text-slate-400">Tip: Use the presets to quickly simulate common cases, or upload a CSV for batch processing.</div>
+
+              {/* Star Rating */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  Star Rating
+                </label>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setRating(star)}
+                      className={`group relative w-9 h-9 flex items-center justify-center rounded-lg border transition-all cursor-pointer ${
+                        star <= rating
+                          ? "bg-slate-800 border-slate-600"
+                          : "bg-slate-900 border-slate-800 hover:border-slate-700"
+                      }`}
+                    >
+                      <Star
+                        className={`w-4 h-4 transition-all ${
+                          star <= rating
+                            ? `fill-current ${STAR_COLORS[rating]}`
+                            : "text-slate-700 group-hover:text-slate-500"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                  <span className="ml-3 text-sm font-semibold text-slate-300">{rating} / 5</span>
+                  <span className={`ml-1 text-xs font-medium ${STAR_COLORS[rating]}`}>
+                    {["", "Very negative", "Negative", "Mixed", "Positive", "Very positive"][rating]}
+                  </span>
+                </div>
+              </div>
+
+              {/* Review Textarea */}
+              <div className="space-y-1.5">
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                  Review Content
+                </label>
+                <textarea
+                  placeholder="Paste or type the full review text here..."
+                  rows={7}
+                  value={manualText}
+                  onChange={(e) => setManualText(e.target.value)}
+                  required
+                  className="w-full bg-slate-900 border border-slate-700 hover:border-slate-600 focus:border-teal-500 p-3.5 rounded-xl text-sm text-white placeholder-slate-600 outline-none resize-none leading-relaxed transition-colors"
+                />
+                <div className="flex justify-between text-[10px] text-slate-600">
+                  <span>{manualText.length} characters</span>
+                  <span>{manualText.trim() ? manualText.trim().split(/\s+/).length : 0} words</span>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={isAnalyzing || !manualText.trim() || !productName.trim()}
+                className="w-full flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-400 active:scale-[0.99] disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold py-3 rounded-xl transition-all text-sm cursor-pointer"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12H4z" />
+                    </svg>
+                    <span>Analysing patterns...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Run Forensic Analysis</span>
+                    <ArrowRight className="w-4 h-4 ml-auto" />
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Right — Info Panel (2/5) */}
+          <div className="lg:col-span-2 flex flex-col gap-4">
+
+            {/* Results card */}
+            <div className="flex-1 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-800 flex items-center gap-2">
+                <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Analysis Preview</span>
+              </div>
+
+              {!lastPreview ? (
+                <div className="p-5 space-y-4">
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    After submitting a review, your forensic results will appear here — including authenticity scores, detected patterns, and recommended actions.
+                  </p>
+                  <div className="space-y-2.5">
+                    {[
+                      { label: "Fake Probability", color: "bg-rose-500/20", width: "w-0" },
+                      { label: "AI-Generated Score", color: "bg-amber-500/20", width: "w-0" },
+                      { label: "Trust Index", color: "bg-teal-500/20", width: "w-0" },
+                    ].map((m) => (
+                      <div key={m.label}>
+                        <div className="flex justify-between text-[10px] text-slate-600 mb-1">
+                          <span>{m.label}</span>
+                          <span>—</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-slate-800">
+                          <div className={`h-full rounded-full ${m.color} ${m.width}`} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-5 space-y-4">
+                  <div>
+                    <p className="text-xs font-bold text-white">{lastPreview.productName}</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {lastPreview.reviewerName} · {lastPreview.rating}★
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-slate-400 italic leading-relaxed border-l-2 border-slate-700 pl-3">
+                    "{lastPreview.reviewText.slice(0, 140)}{lastPreview.reviewText.length > 140 ? "…" : ""}"
+                  </p>
+                  <div className="space-y-2.5">
+                    {[
+                      { label: "Fake Probability", value: "—", color: "text-rose-400" },
+                      { label: "AI-Generated Score", value: "—", color: "text-amber-400" },
+                      { label: "Trust Index", value: "—", color: "text-teal-400" },
+                    ].map((m) => (
+                      <div key={m.label} className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500">{m.label}</span>
+                        <span className={`font-bold ${m.color}`}>{m.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Tip card */}
+            <div className="bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-3">
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                <span className="text-teal-400 font-semibold">Tip:</span> Use the demo presets below to instantly populate the form with known patterns — bot review, smear campaign, or genuine feedback.
+              </p>
+            </div>
+
           </div>
         </div>
+      )}
 
-      ) : (
-        
-        /* BULK CSV IMPORT LAYOUT */
-        <div className="card bg-slate-900/40 border-slate-800 p-6 md:p-8 shadow-2xl space-y-6">
-          
-          <div className="max-w-xl">
-            <h4 className="text-base font-bold text-white">Import Marketplace Sheets</h4>
-            <p className="text-xs text-slate-400 leading-normal mt-1">
-              Supports bulk listing files directly. Ensure your CSV contains columns equivalent to **Rating, Reviewer, Review, and Product** as header keys.
+      {/* ── Bulk CSV Tab ── */}
+      {activeTab === "bulk" && (
+        <div className="max-w-2xl space-y-5">
+          <div className="space-y-1">
+            <h4 className="text-sm font-bold text-white">Import Marketplace Sheet</h4>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Upload a CSV with columns in order: <span className="text-slate-300 font-medium">Rating, Reviewer, Review, Product</span>. Supports up to 10,000 rows.
             </p>
           </div>
 
@@ -353,83 +390,85 @@ export default function ReviewAuditor({ onAnalyze, isAnalyzing }: ReviewAuditorP
             onDragLeave={handleDrag}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-64 ${
-              dragActive 
-                ? "border-teal-400 bg-teal-500/5 shadow-inner" 
-                : "border-slate-800 bg-slate-950 hover:bg-slate-900/60"
+            className={`relative border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all flex flex-col items-center gap-3 ${
+              dragActive ? "border-teal-500 bg-teal-500/5" : "border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/60"
             }`}
           >
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-              accept=".csv"
-              className="hidden"
-            />
-            <div className="bg-teal-500/10 text-teal-400 p-4 rounded-2xl border border-teal-500/20 mb-4 animate-bounce-slow">
-              <UploadCloud className="w-8 h-8" />
+            <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept=".csv" className="hidden" />
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-all ${
+              dragActive ? "bg-teal-500/15 border-teal-500/30 text-teal-400" : "bg-slate-800 border-slate-700 text-slate-400"
+            }`}>
+              <UploadCloud className="w-6 h-6" />
             </div>
-            <p className="text-sm font-bold text-white">Drag and drop rating CSV or click to browse</p>
-            <p className="text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-wider">Supports large listings up to 10,000 rows</p>
+            <div>
+              <p className="text-sm font-semibold text-white">Drop your CSV here, or click to browse</p>
+              <p className="text-xs text-slate-500 mt-1">Only .csv files are accepted</p>
+            </div>
           </div>
 
-          {/* Import alerts */}
           {uploadStatus.type !== "idle" && (
-            <div className={`p-4 rounded-xl border flex gap-3 text-xs leading-relaxed ${
-              uploadStatus.type === "success" 
-                ? "bg-emerald-500/15 border-emerald-500/20 text-emerald-300 animate-fade-in" 
-                : "bg-rose-500/15 border-rose-500/20 text-rose-300 animate-fade-in"
+            <div className={`flex items-start gap-3 p-4 rounded-xl border text-xs leading-relaxed ${
+              uploadStatus.type === "success"
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+                : "bg-rose-500/10 border-rose-500/20 text-rose-300"
             }`}>
-              {uploadStatus.type === "success" ? <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" /> : <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 animate-pulse" />}
-              <span className="flex-1 font-semibold">{uploadStatus.text}</span>
+              {uploadStatus.type === "success"
+                ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                : <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />}
+              <span>{uploadStatus.text}</span>
             </div>
           )}
 
-          {/* Core CSV processing trigger */}
           {loadedFromCSV.length > 0 && (
             <button
               onClick={triggerCSVSubmit}
               disabled={isAnalyzing}
-              className="w-full bg-teal-500 hover:bg-teal-400 disabled:bg-slate-800 text-slate-950 font-extrabold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-xs cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-400 disabled:bg-slate-800 disabled:text-slate-600 text-slate-950 font-bold py-3 rounded-xl transition-all text-sm cursor-pointer"
             >
               {isAnalyzing ? (
-                <span>Filtering Listing Rows...</span>
+                <span>Processing rows...</span>
               ) : (
                 <>
-                  <span>Process {loadedFromCSV.length} Synced Listing Rows</span>
-                  <FileText className="w-4 h-4 text-slate-950" />
+                  <FileText className="w-4 h-4" />
+                  <span>Analyse {loadedFromCSV.length} Reviews</span>
+                  <ArrowRight className="w-4 h-4 ml-auto" />
                 </>
               )}
             </button>
           )}
-
         </div>
       )}
 
-      {/* Placeholders presets list */}
-      <div className="space-y-4 pt-4 border-t border-slate-900">
-        <div className="flex items-center gap-2 text-slate-300 font-extrabold text-xs uppercase tracking-wide">
-          <Sparkles className="w-4 h-4 text-teal-400" />
-          <span>Quick Demo Presets: Fill in with 1-Click</span>
+      {/* ── Demo Presets ── */}
+      <div className="mt-10 pt-6 border-t border-slate-800/60 space-y-4">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Quick Demo Presets</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {presets.map((tpl, idx) => {
-            const IconComp = tpl.icon;
+            const Icon = tpl.icon;
             return (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handlePresetSelect(tpl.text, tpl.rating, tpl.product, tpl.author)}
-                className="bg-slate-900 hover:bg-slate-850 border border-slate-850 hover:border-slate-850 p-4 rounded-xl text-left transition-all relative group text-xs cursor-pointer block"
+                className={`group text-left bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 rounded-xl p-4 transition-all cursor-pointer border-l-2 ${tpl.accentClass}`}
               >
-                <div className="flex items-center justify-between gap-1.5 font-bold text-white mb-2">
-                  <span className="truncate">{tpl.title}</span>
-                  <span className={`px-2 py-0.5 border rounded text-[9px] font-mono ${tpl.badgeColor}`}>
-                    {tpl.product.split(" ")[0]}
+                <div className="flex items-start justify-between gap-2 mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Icon className="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-300 transition-colors shrink-0" />
+                    <span className="text-xs font-bold text-white">{tpl.title}</span>
+                  </div>
+                  <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${tpl.badgeBg}`}>
+                    {tpl.rating}★
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 line-clamp-2 italic leading-relaxed">&quot;{tpl.text}&quot;</p>
+                <p className="text-[11px] text-slate-500 group-hover:text-slate-400 line-clamp-2 leading-relaxed transition-colors">
+                  {tpl.text}
+                </p>
+                <p className="mt-2 text-[10px] text-slate-600">{tpl.product}</p>
               </button>
             );
           })}

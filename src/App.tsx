@@ -1048,7 +1048,7 @@ export default function App() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g. S. Jagrit"
+                    placeholder="e.g. Alex Johnson"
                     value={authName}
                     onChange={(e) => setAuthName(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-850 px-3.5 py-2.5 rounded-xl text-xs text-white focus:outline-none focus:border-teal-500"

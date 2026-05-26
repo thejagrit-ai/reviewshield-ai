@@ -1,0 +1,6 @@
+{
+  "name": "ReviewShield AI",
+  "description": "Advanced AI-powered fake review detection and sentiment intelligence platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
