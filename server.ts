@@ -801,6 +801,12 @@ async function startBootstrap() {
   });
 }
 
-startBootstrap().catch((err) => {
-  console.error("Failed to start cloud run container:", err);
-});
+const isFirebaseRuntime = Boolean(process.env.FIREBASE_CONFIG);
+
+if (!isFirebaseRuntime) {
+  startBootstrap().catch((err) => {
+    console.error("Failed to start cloud run container:", err);
+  });
+}
+
+export { app };
